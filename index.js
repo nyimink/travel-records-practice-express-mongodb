@@ -1,7 +1,7 @@
 import express from "express";
 const app = express();
 
-import { MongoClient, ObjectId } from "mongodb";
+import { MongoClient, ObjectId, ReturnDocument } from "mongodb";
 const mongo = new MongoClient("mongodb://localhost");
 const db = mongo.db("travel");
 
@@ -114,6 +114,32 @@ app.post("/api/records",
 
     }
 )
+
+app.put("/api/records/:id", async (req, res) => {
+    const requestID = req.params.id
+
+    if(!ObjectId.isValid(requestID)) {
+        return res.status(400).json({ errors: "Invalid Record ID"})
+    }
+
+    const _id = new ObjectId(requestID)
+
+    try {
+        const result = await db
+                    .collection("records")
+                    .findOneAndReplace({ _id }, req.body, { ReturnDocument: "after"})
+
+        
+        return res.status(200).json({
+            meta: {
+                _id
+            },
+            data: result.value
+        })
+    }   catch {
+        return res.sendStatus(400)
+    }
+})
 
 app.listen(3000, () => {
     console.log("Server is running at port 3000")
