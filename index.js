@@ -65,6 +65,26 @@ app.get("/api/records", async (req, res) => {
 //     return res.json(req.query)
 // })
 
+app.get("/api/records/:id", async (req, res) => {
+    const _id = new ObjectId(req.params.id)
+    
+    try {
+        const result = await db
+                        .collection("records")
+                        .findOne({ _id })
+
+        return res.status(200).json({
+            meta: {
+                _id
+            },
+            data: result
+        })
+
+    } catch {
+        res.sendStatus(500)
+    }
+})
+
 
 import { body, param, validationResult } from "express-validator";
 
@@ -170,6 +190,29 @@ app.patch("/api/records/:id", async (req, res) => {
         return res.sendStatus(500)
     }
 
+})
+
+app.delete("/api/records/:id", async (req, res) => {
+    const requestID = req.params.id;
+
+    if(!ObjectId.isValid(requestID)) {
+        return res.status(400).json({ errors: "Invalid Record ID"})
+    }
+
+    const _id = new ObjectId(requestID);
+
+    try {
+
+        const result = await db
+                        .collection("records")
+                        .deleteOne({ _id })
+
+        return res.status(200).json({ updated: "Deleted one record"})
+
+
+    } catch {
+        return res.sendStatus(500)
+    }
 })
 
 app.listen(3000, () => {
