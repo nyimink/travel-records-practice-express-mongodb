@@ -70,9 +70,9 @@ import { body, param, validationResult } from "express-validator";
 
 app.post("/api/records", 
     [
-        body("to").not().isEmpty(),
-        body("from").not().isEmpty(),
-        body("name").not().isEmpty(),
+        body("to").trim().notEmpty(),
+        body("from").trim().notEmpty(),
+        body("name").trim().notEmpty(),
     ],
 
     async (req, res) => {
@@ -83,13 +83,21 @@ app.post("/api/records",
         }
 
         try {
+
+            const newRecord = {
+                name: req.body.name,
+                from: req.body.from,
+                to: req.body.to,
+                with: req.body.with
+            }
+
             const result = await db
                             .collection("records")
-                            .insertOne(req.body)
+                            .insertOne(newRecord)
 
             const _id = result.insertedId;
 
-            res.append("location", "/api/records" + _id)
+            res.append("Location", "/api/records/" + _id)
 
             res.status(201).json({
                 meta: {
