@@ -46,7 +46,9 @@ app.get("/api/records", async (req, res) => {
                     total: result.length
                 },
                 data: result,
-                link: req.originalUrl
+                link: {
+                    self: req.originalUrl,
+                }
             })
 
         } catch {
@@ -59,11 +61,51 @@ app.get("/api/records", async (req, res) => {
 
 })
 
-app.get("/api/test", (req, res) => {
-    return res.json(req.query)
-})
+// app.get("/api/test", (req, res) => {
+//     return res.json(req.query)
+// })
 
 
+import { body, param, validationResult } from "express-validator";
+
+app.post("/api/records", 
+    [
+        body("to").not().isEmpty(),
+        body("from").not().isEmpty(),
+        body("name").not().isEmpty(),
+    ],
+
+    async (req, res) => {
+        const errors = validationResult(req);
+
+        if(!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors})
+        }
+
+        try {
+            const result = await db
+                            .collection("records")
+                            .insertOne(req.body)
+
+            const _id = result.insertedId;
+
+            res.append("location", "/api/records" + _id)
+
+            res.status(201).json({
+                meta: {
+                    _id
+                },
+                data: {
+                    result
+                }
+            })
+
+        } catch {
+            return res.sendStatus(500)
+        }
+
+    }
+)
 
 app.listen(3000, () => {
     console.log("Server is running at port 3000")
