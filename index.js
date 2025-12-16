@@ -141,6 +141,37 @@ app.put("/api/records/:id", async (req, res) => {
     }
 })
 
+app.patch("/api/records/:id", async (req, res) => {
+    const requestID = req.params.id;
+
+    if(!ObjectId.isValid(requestID)) {
+        return res.status(400).json({ errors: "Invalid Record ID"})
+    }
+
+    const _id = new ObjectId(requestID);
+
+    try {
+        const result = await db
+                        .collection("records")
+                        .findOneAndUpdate(
+                            { _id },
+                            { $set: req.body },
+                            { returnDocument: "after" }
+                        )
+                    
+        return res.status(200).json({
+            meta: {
+                _id
+            },
+            data: result.value
+        })
+
+    } catch {
+        return res.sendStatus(500)
+    }
+
+})
+
 app.listen(3000, () => {
     console.log("Server is running at port 3000")
 })
